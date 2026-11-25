@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7a1f2b">
+<title>お題目記録</title>
+<style>
+  :root{
+    --bg:#faf6ef; --card:#ffffff; --ink:#2b2420; --sub:#8a7d72;
+    --accent:#7a1f2b; --accent2:#b8862f; --line:#eadfce; --soft:#f3ebdd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink);
+       padding:16px 14px 40px;max-width:520px;margin:0 auto;line-height:1.5}
+  h1{font-family:"Hiragino Mincho ProN","Noto Serif JP","Yu Mincho",serif;font-size:20px;text-align:center;
+     color:var(--accent);letter-spacing:.15em;margin:4px 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;
+        box-shadow:0 2px 8px rgba(80,50,20,.05)}
+
+  /* 五指針 */
+  .shishin{font-family:"Hiragino Mincho ProN","Noto Serif JP","Yu Mincho",serif;background:linear-gradient(180deg,#fffdf8,#fbf4e6)}
+  .shishin .ttl{text-align:center;font-size:13px;color:var(--accent2);letter-spacing:.2em;margin-bottom:10px}
+  .shishin ol{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .shishin li{display:flex;align-items:center;gap:10px;font-size:16px;padding:6px 10px;border-radius:10px;transition:.3s}
+  .shishin li .n{width:24px;height:24px;border-radius:50%;border:1px solid var(--accent2);color:var(--accent2);
+                 display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+
+  /* 七つの鐘 年表 */
+  .kane .ttl{text-align:center;font-family:"Hiragino Mincho ProN","Noto Serif JP","Yu Mincho",serif;font-size:17px;color:var(--accent);letter-spacing:.15em}
+  .kane .lead{font-size:12.5px;color:var(--sub);text-align:center;margin:6px 0 14px}
+  .tl{position:relative;padding-left:22px}
+  .tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--accent2),var(--accent))}
+  .ev{position:relative;margin-bottom:14px}
+  .ev::before{content:"";position:absolute;left:-20px;top:5px;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid var(--accent2)}
+  .ev.big::before{background:var(--accent);border-color:var(--accent)}
+  .ev .yr{font-size:12px;color:var(--accent2);font-weight:700}
+  .ev .nm{font-size:15px;font-weight:700;margin:1px 0}
+  .ev .tx{font-size:13.5px}
+  .ev .now{display:inline-block;font-size:11px;background:var(--accent);color:#fff;border-radius:10px;padding:0 8px;margin-left:6px;vertical-align:2px}
+  .ev.note{color:var(--sub)}
+  .ev.note::before{width:8px;height:8px;left:-18px;top:7px;border-color:var(--line);background:var(--line)}
+
+  /* タイマー */
+  .timer{text-align:center}
+  .time{font-size:56px;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:.03em;margin:4px 0 2px}
+  .state{font-size:13px;color:var(--sub);min-height:20px}
+  .btn-main{margin-top:14px;width:100%;padding:18px;border:none;border-radius:14px;font-size:20px;font-weight:600;
+            letter-spacing:.2em;color:#fff;background:var(--accent);cursor:pointer}
+  .btn-main.running{background:var(--ink)}
+  .btn-main:active{transform:scale(.98)}
+  .today-sum{display:flex;justify-content:space-around;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  .today-sum div{font-size:12px;color:var(--sub)}
+  .today-sum b{display:block;font-size:22px;color:var(--ink);font-weight:600}
+
+  /* カレンダー */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .cal-head button{background:var(--soft);border:none;width:36px;height:36px;border-radius:10px;font-size:18px;color:var(--ink);cursor:pointer}
+  .cal-head .m{font-size:17px;font-weight:600}
+  .month-total{text-align:center;font-size:13px;color:var(--sub);margin-bottom:10px}
+  .month-total b{color:var(--accent);font-size:18px}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .dow{font-size:11px;text-align:center;color:var(--sub);padding-bottom:2px}
+  .dow.sun{color:#c0392b}.dow.sat{color:#2c6fb3}
+  .day{aspect-ratio:1/1.1;border-radius:10px;background:var(--soft);display:flex;flex-direction:column;align-items:center;
+       justify-content:flex-start;padding-top:4px;font-size:12px;cursor:pointer;position:relative}
+  .day.empty{background:transparent;cursor:default}
+  .day .mins{font-size:12px;font-weight:700;margin-top:auto;margin-bottom:5px}
+  .day.lv1{background:#f6e3c7}.day.lv2{background:#ecc38f}.day.lv3{background:#c98a4b;color:#fff}.day.lv4{background:var(--accent);color:#fff}
+  .day.is-today{outline:2px solid var(--accent);outline-offset:-2px}
+  .day.sel{box-shadow:0 0 0 2px var(--accent2) inset}
+
+  /* 日詳細 */
+  .detail{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;display:none}
+  .detail.show{display:block}
+  .detail h3{font-size:14px;margin-bottom:8px;display:flex;justify-content:space-between}
+  .sess{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:7px 0;border-bottom:1px solid var(--soft)}
+  .sess button{background:none;border:none;color:var(--sub);font-size:13px;cursor:pointer;padding:4px 8px}
+  .add-row{display:flex;gap:6px;margin-top:10px}
+  .add-row input{flex:1;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:15px;background:#fff}
+  .add-row button{padding:10px 14px;border:none;border-radius:10px;background:var(--accent2);color:#fff;font-size:14px;cursor:pointer}
+  .none{font-size:13px;color:var(--sub)}
+
+  .footer{display:flex;gap:8px;justify-content:center}
+  .footer button,.footer label{font-size:12px;color:var(--sub);background:none;border:1px solid var(--line);border-radius:20px;padding:6px 14px;cursor:pointer}
+  .footer input{display:none}
+</style>
+</head>
+<body>
+
+<h1>お題目記録</h1>
+
+<div class="card shishin">
+  <div class="ttl">創価学会 永遠の五指針</div>
+  <ol id="shishin"></ol>
+</div>
+
+<div class="card timer">
+  <div class="time" id="time">00:00</div>
+  <div class="state" id="state">タップで唱題を開始</div>
+  <button class="btn-main" id="btn">開始</button>
+  <div class="today-sum">
+    <div>今日<b id="todayMin">0分</b></div>
+    <div>今月<b id="monthMin">0分</b></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="cal-head">
+    <button id="prev">‹</button>
+    <div class="m" id="mLabel"></div>
+    <button id="next">›</button>
+  </div>
+  <div class="month-total">月合計 <b id="mTotal">0</b> 分 ／ 唱題日数 <span id="mDays">0</span>日</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="detail" id="detail">
+    <h3><span id="dTitle"></span><span id="dSum"></span></h3>
+    <div id="dList"></div>
+    <div class="add-row">
+      <input type="number" id="addMin" inputmode="numeric" min="1" placeholder="分数を手入力">
+      <button id="addBtn">追加</button>
+    </div>
+  </div>
+</div>
+
+<div class="card kane">
+  <div class="ttl">広布の大ロマン　七つの鐘</div>
+  <div class="lead">池田先生が示された、23世紀へと続く壮大な構想</div>
+  <div class="tl">
+    <div class="ev note">
+      <div class="yr">1997年5月</div>
+      <div class="tx">関西で、23世紀後半までの新しい「七つの鐘」の構想を発表</div>
+    </div>
+    <div class="ev big">
+      <div class="yr">2001年5月3日〜 ／ 21世紀前半</div>
+      <div class="nm">第二の「七つの鐘」<span class="now">いま</span></div>
+      <div class="tx">アジアをはじめ、世界の平和の基盤を築く</div>
+    </div>
+    <div class="ev">
+      <div class="yr">21世紀後半</div>
+      <div class="nm">第三の「七つの鐘」</div>
+      <div class="tx">「生命の尊厳」の哲学を、時代精神・世界精神として定着させる</div>
+    </div>
+    <div class="ev">
+      <div class="yr">22世紀前半</div>
+      <div class="nm">第四の「七つの鐘」</div>
+      <div class="tx">世界の「恒久の平和」の崩れざる基盤をつくる</div>
+    </div>
+    <div class="ev">
+      <div class="yr">22世紀後半</div>
+      <div class="nm">第五の「七つの鐘」</div>
+      <div class="tx">平和の基盤の上に、絢爛たる人間文化の花が開く</div>
+    </div>
+    <div class="ev">
+      <div class="yr">23世紀前半から</div>
+      <div class="nm">第六・第七の「七つの鐘」</div>
+      <div class="tx">さらに前進を続ける</div>
+    </div>
+    <div class="ev big">
+      <div class="yr">2253年 ／ 23世紀半ば</div>
+      <div class="nm">日蓮大聖人 立宗1000年</div>
+      <div class="tx">このころから、新たな展開が始まる</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <button id="exportBtn">バックアップ保存</button>
+  <label>復元<input type="file" id="importFile" accept=".json,application/json"></label>
+</div>
+
+<script>
+const KEY = 'odaimoku_v1';
+const SHISHIN = ['一家和楽の信心','幸福をつかむ信心','難を乗り越える信心','健康長寿の信心','絶対勝利の信心'];
+const NUM = ['一','二','三','四','五'];
+
+// data: { sessions: { 'YYYY-MM-DD': [{s:ms, e:ms, m:minutes}] }, running: startMs|null }
+let data = load();
+let view = new Date(); view.setDate(1);
+let selected = null;
+let tick = null;
+
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(KEY)); if(d && d.sessions) return d; }catch(e){}
+  return {sessions:{}, running:null};
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(data)); }catch(e){ alert('保存に失敗しました'); } }
+
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const hm = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const dayTotal = k => (data.sessions[k]||[]).reduce((a,x)=>a+x.m,0);
+function monthTotal(y,m){
+  let t=0, days=0; const pre = `${y}-${pad(m+1)}-`;
+  for(const k in data.sessions){ if(k.startsWith(pre)){ const v=dayTotal(k); t+=v; if(v>0) days++; } }
+  return {t, days};
+}
+const fmt = m => m>=60 ? `${Math.floor(m/60)}時間${m%60 ? (m%60)+'分' : ''}` : `${m}分`;
+
+/* 五指針 */
+function renderShishin(){
+  document.getElementById('shishin').innerHTML = SHISHIN.map((s,i)=>
+    `<li><span class="n">${NUM[i]}</span>${s}</li>`).join('');
+}
+
+/* タイマー */
+function renderTimer(){
+  const btn = document.getElementById('btn'), t = document.getElementById('time'), st = document.getElementById('state');
+  if(data.running){
+    const sec = Math.floor((Date.now()-data.running)/1000);
+    const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60;
+    t.textContent = h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+    st.textContent = `${hm(data.running)} から唱題中`;
+    btn.textContent = '終了'; btn.classList.add('running');
+  }else{
+    t.textContent = '00:00'; st.textContent = 'タップで唱題を開始';
+    btn.textContent = '開始'; btn.classList.remove('running');
+  }
+}
+function startTick(){ clearInterval(tick); if(data.running) tick = setInterval(renderTimer, 1000); }
+
+document.getElementById('btn').onclick = () => {
+  if(!data.running){
+    data.running = Date.now(); save(); startTick();
+  }else{
+    const s = data.running, e = Date.now();
+    const m = Math.round((e-s)/60000);
+    data.running = null;
+    if(m >= 1){
+      const k = ymd(new Date(s));
+      (data.sessions[k] = data.sessions[k]||[]).push({s, e, m});
+    }
+    save(); clearInterval(tick);
+    renderTimer();
+    document.getElementById('state').textContent = m >= 1 ? `${m}分を記録しました 🙏` : '1分未満のため記録しませんでした';
+    selected = ymd(new Date(s));
+    renderAll(false);
+    setTimeout(()=>{ if(!data.running) renderTimer(); }, 4000);
+    return;
+  }
+  renderTimer();
+};
+
+/* カレンダー */
+function level(m){ return m===0?0 : m<15?1 : m<30?2 : m<60?3 : 4; }
+function renderCal(){
+  const y = view.getFullYear(), m = view.getMonth();
+  document.getElementById('mLabel').textContent = `${y}年${m+1}月`;
+  const {t, days} = monthTotal(y,m);
+  document.getElementById('mTotal').textContent = t.toLocaleString();
+  document.getElementById('mDays').textContent = days;
+  const first = new Date(y,m,1).getDay(), last = new Date(y,m+1,0).getDate();
+  const today = ymd(new Date());
+  let h = ['日','月','火','水','木','金','土'].map((d,i)=>`<div class="dow ${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('');
+  for(let i=0;i<first;i++) h += '<div class="day empty"></div>';
+  for(let d=1; d<=last; d++){
+    const k = `${y}-${pad(m+1)}-${pad(d)}`, v = dayTotal(k);
+    h += `<div class="day lv${level(v)} ${k===today?'is-today':''} ${k===selected?'sel':''}" data-k="${k}">
+            <span>${d}</span>${v?`<span class="mins">${v}</span>`:''}</div>`;
+  }
+  const g = document.getElementById('grid'); g.innerHTML = h;
+  g.querySelectorAll('.day[data-k]').forEach(el => el.onclick = () => { selected = el.dataset.k; renderAll(false); });
+}
+function renderDetail(){
+  const box = document.getElementById('detail');
+  if(!selected){ box.classList.remove('show'); return; }
+  box.classList.add('show');
+  const [y,m,d] = selected.split('-').map(Number);
+  document.getElementById('dTitle').textContent = `${m}月${d}日`;
+  document.getElementById('dSum').textContent = `合計 ${fmt(dayTotal(selected))}`;
+  const list = data.sessions[selected]||[];
+  document.getElementById('dList').innerHTML = list.length
+    ? list.map((x,i)=>`<div class="sess"><span>${x.s?`${hm(x.s)}〜${hm(x.e)}`:'手入力'}　<b>${x.m}分</b></span>
+        <button data-i="${i}">削除</button></div>`).join('')
+    : '<div class="none">記録はありません</div>';
+  document.querySelectorAll('#dList button').forEach(b => b.onclick = () => {
+    if(!confirm('この記録を削除しますか？')) return;
+    list.splice(+b.dataset.i,1); if(!list.length) delete data.sessions[selected];
+    save(); renderAll(false);
+  });
+}
+document.getElementById('addBtn').onclick = () => {
+  const inp = document.getElementById('addMin'), m = parseInt(inp.value,10);
+  if(!selected || !(m>0)) return;
+  (data.sessions[selected] = data.sessions[selected]||[]).push({s:null, e:null, m});
+  inp.value=''; save(); renderAll(false);
+};
+document.getElementById('prev').onclick = () => { view.setMonth(view.getMonth()-1); renderCal(); };
+document.getElementById('next').onclick = () => { view.setMonth(view.getMonth()+1); renderCal(); };
+
+function renderSums(){
+  const n = new Date();
+  document.getElementById('todayMin').textContent = fmt(dayTotal(ymd(n)));
+  document.getElementById('monthMin').textContent = fmt(monthTotal(n.getFullYear(), n.getMonth()).t);
+}
+function renderAll(withTimer=true){ if(withTimer) renderTimer(); renderSums(); renderCal(); renderDetail(); }
+
+/* バックアップ */
+document.getElementById('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify(data,null,1)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `odaimoku_backup_${ymd(new Date())}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+document.getElementById('importFile').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = JSON.parse(r.result);
+      if(!d.sessions) throw 0;
+      if(!confirm('現在の記録をバックアップの内容で置き換えますか？')) return;
+      data = {sessions:d.sessions, running:null}; save(); renderAll(); alert('復元しました');
+    }catch(err){ alert('ファイルを読み込めませんでした'); }
+    e.target.value='';
+  };
+  r.readAsText(f);
+};
+
+document.addEventListener('visibilitychange', () => { if(!document.hidden) renderAll(); });
+
+renderShishin();
+selected = ymd(new Date());
+renderAll();
+startTick();
+</script>
+</body>
+</html>
